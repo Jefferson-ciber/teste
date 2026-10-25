@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="description" content="Portal interno de comunicação da Regional Jaraguá - SP.">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#0d0d0d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Regional Jaraguá">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/images/apple-touch-icon.png">
+  <title>Portal Regional Jaraguá - SP | Acesso restrito</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    tailwind.config={theme:{extend:{colors:{gold:'#c9a84c',goldLight:'#f0c96b',dark:'#0d0d0d',card:'#141418',cardBorder:'#2a2a32'},fontFamily:{display:['Bebas Neue','sans-serif'],heading:['Oswald','sans-serif'],body:['Roboto','sans-serif']}}}};
+  </script>
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body class="min-h-screen flex flex-col">
+  <img src="assets/images/cavera.jpg" alt="" class="skull-bg" aria-hidden="true">
+  <img src="assets/images/reginal_jaragua.png" alt="" class="logo-bg" aria-hidden="true">
+  <div class="mc-topbar"></div>
+  <nav class="navbar sticky top-0 z-50"><div class="max-w-5xl mx-auto px-5 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3"><img src="assets/images/escudo.png" alt="Insanos MC" style="height:44px;width:auto;display:block" onerror="this.style.display='none'"><div class="leading-tight"><div class="font-display text-white text-xl tracking-widest">INSANOS MC</div><div class="text-[10px] text-gold font-heading tracking-widest uppercase">Regional Jaraguá - SP · XXXV</div></div></div>
+    <div id="nav-user" class="hidden-view flex items-center gap-3"><span id="user-email" class="hidden sm:inline text-xs text-gray-400"></span><button id="logout-btn" class="btn btn-secondary text-sm"><i class="fa-solid fa-right-from-bracket mr-2"></i>Sair</button></div>
+  </div></nav>
+  <div id="ui-dialog" class="hidden-view" role="alertdialog" aria-modal="true" aria-labelledby="ui-dlg-title" aria-describedby="ui-dlg-msg"><div class="ui-dlg-box"><div class="ui-dlg-head"><i id="ui-dlg-icon" class="fa-solid fa-circle-question" aria-hidden="true"></i><h3 id="ui-dlg-title">Confirmação</h3></div><div class="ui-dlg-body"><p id="ui-dlg-msg"></p><textarea id="ui-dlg-input" class="field hidden-view" rows="3" maxlength="500"></textarea></div><div class="ui-dlg-foot"><button type="button" class="btn btn-secondary" id="ui-dlg-cancel">Cancelar</button><button type="button" class="btn btn-primary" id="ui-dlg-ok">Confirmar</button></div></div></div>
+  <div id="sos-dialog" class="hidden-view" role="dialog" aria-modal="true" aria-labelledby="sos-title"><div class="ui-dlg-box" id="sos-box"><div class="ui-dlg-head"><i id="sos-icon" class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><h3 id="sos-title">Pedir ajuda</h3></div><div class="ui-dlg-body"><p id="sos-sub" style="margin-bottom:10px"></p><div id="sos-types" class="sos-types"></div><textarea id="sos-text" class="field" rows="3" maxlength="400" placeholder="Descreva o que aconteceu e onde você está (opcional)"></textarea><label class="sos-share"><input type="checkbox" id="sos-share" checked> Compartilhar minha localização em tempo real com o comando</label><p id="sos-msg" class="text-sm mt-2" style="color:#f87171"></p></div><div class="ui-dlg-foot"><button type="button" class="btn btn-secondary" id="sos-cancel">Cancelar</button><button type="button" class="btn" id="sos-send">Enviar pedido</button></div></div></div>
+  <div id="sb-backdrop" aria-hidden="true"></div>
+  <div id="pop-modal" class="hidden-view" role="dialog" aria-modal="true"><div class="pop-box"><button type="button" class="pop-x" id="pop-x" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button><div id="pop-body"></div></div></div>
+  <div id="kpi-modal" class="hidden-view" role="dialog" aria-modal="true"><div class="kpi-box"><div class="kpi-head"><h3 id="kpi-title"></h3><button type="button" id="kpi-x" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button></div><div id="kpi-body"></div></div></div>
+  <div id="rules-modal" class="hidden-view" role="dialog" aria-modal="true" aria-labelledby="rules-title">
+    <div class="info-card hero rules-card"><img class="rules-skull" alt="" aria-hidden="true">
+      <button type="button" id="rules-x" class="info-x" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+      <div class="rules-scroll">
+        <div class="rules-top"><img class="rules-shield" src="assets/images/escudo.png" alt="Insanos MC" onerror="this.style.display='none'"></div>
+        <div class="rules-grid">
+          <div class="rules-art"><img id="rules-img" alt="Urso, lobo e caveira do Insanos MC" decoding="async"></div>
+          <div class="rules-body">
+            <div class="patch-badge"><i class="fa-solid fa-scale-balanced"></i> Regional Jaraguá - SP (XXXV)</div>
+            <h2 id="rules-title" class="sr-only">Mandamentos e regras</h2>
+            <div class="rules-ctas">
+              <button type="button" class="rules-cta" data-rules="mand" aria-haspopup="dialog"><span class="ic"><i class="fa-solid fa-scroll"></i></span><span><b>Os 10 Mandamentos dos PPs para se tornar um Insano</b><small>Toque para ver os 10</small></span><i class="fa-solid fa-chevron-right go"></i></button>
+              <button type="button" class="rules-cta" data-rules="regras" aria-haspopup="dialog"><span class="ic"><i class="fa-solid fa-scale-balanced"></i></span><span><b>As 5 Regras</b><small>Toque para ver as 5</small></span><i class="fa-solid fa-chevron-right go"></i></button>
+            </div>
+            <button type="button" class="btn btn-secondary" id="rules-ok" style="margin-top:18px">Entendi</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="rules-detail" class="hidden-view" role="dialog" aria-modal="true" aria-labelledby="rd-title">
+    <div class="info-card hero rules-card rd-card"><img class="rules-skull" alt="" aria-hidden="true">
+      <button type="button" id="rd-x" class="info-x" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+      <div class="rules-scroll">
+        <div class="rd-head"><img class="rules-shield sm" src="assets/images/escudo.png" alt="" onerror="this.style.display='none'"><h2 id="rd-title" class="rules-h"></h2></div>
+        <ol id="rd-list" class="rules-list"></ol>
+        <div class="rules-foot"><button type="button" class="btn btn-secondary" id="rd-ok">Voltar</button></div>
+      </div>
+    </div>
+  </div>
+  <div id="info-modal" class="hidden-view" role="dialog" aria-modal="true" aria-labelledby="info-title">
+    <div class="info-card hero"><button type="button" id="info-x" class="info-x" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+    <div class="max-w-4xl mx-auto text-center space-y-5"><div class="patch-badge"><i class="fa-solid fa-lock"></i> Portal interno · Regional Jaraguá - SP (XXXV)</div><h2 id="info-title" class="font-display text-white tracking-widest uppercase leading-none" style="font-size:clamp(2rem,6vw,3.6rem)">Guia Oficial de <span class="text-gold">Comunicação</span></h2><p class="text-gray-400 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">Regional Jaraguá - SP (XXXV). Orientações, comunicados e materiais disponíveis apenas para integrantes autorizados.</p><div class="hero-divider"></div><div class="font-heading text-gold text-sm tracking-widest uppercase">“O mundo é diferente da ponte pra cá”</div><button type="button" id="info-ok" class="tab-btn" style="padding:10px 28px">ENTENDI</button></div></div>
+  </div>
+  <main class="max-w-5xl mx-auto w-full px-5 py-10 flex-grow">
+    <section id="login-view" class="max-w-md mx-auto panel p-6 md:p-8">
+      <div class="text-center mb-6"><div class="mx-auto mb-4 w-14 h-14 rounded-xl flex items-center justify-center bg-[#c9a84c18] text-gold text-2xl"><i class="fa-solid fa-user-shield"></i></div><h2 class="font-display text-3xl tracking-widest">Acesso do Integrante</h2><p class="text-sm text-gray-400 mt-2">Use as credenciais fornecidas pelo administrador.</p></div>
+      <form id="login-form" class="space-y-4"><div><label for="email" class="block text-xs text-gray-300 mb-2">E-mail cadastrado</label><input class="field" id="email" type="email" autocomplete="username" required placeholder="seu@email.com"></div><div><label for="password" class="block text-xs text-gray-300 mb-2">Senha</label><input class="field" id="password" type="password" autocomplete="current-password" required placeholder="Sua senha" minlength="6"></div><button id="login-btn" class="btn btn-primary w-full" type="submit"><i class="fa-solid fa-lock-open mr-2"></i>Entrar no portal</button><p id="login-message" class="text-sm text-center" role="status" aria-live="polite"></p></form>
+      <div class="notice mt-5 text-xs text-gray-300"><i class="fa-solid fa-circle-info text-gold mr-2"></i>O cadastro é feito pelo administrador. Não existe inscrição pública.</div>
+    </section>
+    <section id="change-password-view" class="hidden-view max-w-md mx-auto panel p-6 md:p-8"><div class="text-center mb-6"><div class="mx-auto mb-4 w-14 h-14 rounded-xl flex items-center justify-center bg-[#c9a84c18] text-gold text-2xl"><i class="fa-solid fa-key"></i></div><h2 class="font-display text-3xl tracking-widest">Defina sua senha</h2><p class="text-sm text-gray-400 mt-2">Por segurança, troque a senha temporária antes de acessar o portal.</p></div><form id="change-password-form" class="space-y-4"><div><label for="first-new-password" class="block text-xs text-gray-300 mb-2">Nova senha (mínimo 12 caracteres)</label><input class="field" id="first-new-password" type="password" autocomplete="new-password" minlength="12" required></div><div><label for="first-confirm-password" class="block text-xs text-gray-300 mb-2">Confirme a nova senha</label><input class="field" id="first-confirm-password" type="password" autocomplete="new-password" minlength="12" required></div><button class="btn btn-primary w-full" type="submit">Salvar nova senha</button><p id="password-message" class="text-sm" role="status" aria-live="polite"></p></form><button id="cancel-password-change" class="btn btn-secondary w-full mt-3" type="button">Sair</button></section>
+    <section id="loading-view" class="hidden-view text-center py-16"><i class="fa-solid fa-circle-notch fa-spin text-gold text-3xl"></i><p class="mt-4 text-gray-400">Verificando acesso...</p></section>
+    <div id="member-modal" class="hidden-view fixed inset-0 z-50 bg-black/75 overflow-y-auto p-4" role="dialog" aria-modal="true" aria-label="Perfil do integrante"></div>
+    <section id="portal-view" class="hidden-view space-y-10"><button type="button" id="sb-toggle" aria-label="Mostrar ou ocultar menu" title="Mostrar/ocultar menu"><i class="fa-solid fa-chevron-left"></i></button><aside id="member-side" class="hidden-view adm-side"><div class="adm-brand"><img src="assets/images/escudo.png" alt="Insanos MC" onerror="this.style.display='none'"></div><div class="adm-id"><b>INSANOS MC</b><small>Regional Jaraguá - SP · XXXV</small></div><div role="tablist" aria-label="Menu do integrante">
+<h6>Portal</h6>
+<button type="button" class="tab-btn" role="tab" data-mside="home" aria-selected="true"><i class="fa-solid fa-house-chimney"></i>Início</button>
+<button type="button" class="tab-btn" id="info-open"><i class="fa-solid fa-circle-info"></i>Informativo</button>
+<h6>Minha Área</h6>
+<button type="button" class="tab-btn" id="perfil-main" role="tab" data-mside="perfil" data-pgo="info" aria-selected="false" aria-expanded="false" aria-controls="perfil-subs"><i class="fa-solid fa-id-card"></i>Meu Perfil<span class="chev"></span></button>
+<div id="perfil-subs" class="sub-wrap">
+  <button type="button" class="tab-btn sub" role="tab" data-mside="perfil" data-pgo="info" aria-selected="false"><i class="fa-solid fa-user"></i>Informações pessoais</button>
+  <button type="button" class="tab-btn sub" role="tab" data-mside="perfil" data-pgo="grade" aria-selected="false"><i class="fa-solid fa-stairs"></i>Grau, cargo e divisão</button>
+  <button type="button" class="tab-btn sub" role="tab" data-mside="perfil" data-pgo="history" aria-selected="false"><i class="fa-solid fa-clock-rotate-left"></i>Histórico</button>
+  <button type="button" class="tab-btn sub" role="tab" data-mside="perfil" data-pgo="honors" aria-selected="false"><i class="fa-solid fa-medal"></i>Honrarias</button>
+  <button type="button" class="tab-btn sub" role="tab" data-mside="perfil" data-pgo="dependents" aria-selected="false"><i class="fa-solid fa-children"></i>Dependentes</button>
+  <button type="button" class="tab-btn sub" role="tab" data-mside="perfil" data-pgo="vehicles" aria-selected="false"><i class="fa-solid fa-motorcycle"></i>Veículos</button>
+  <button type="button" class="tab-btn sub" role="tab" data-mside="perfil" data-pgo="addresses" aria-selected="false"><i class="fa-solid fa-house"></i>Endereços</button>
+  <button type="button" class="tab-btn sub" role="tab" data-mside="perfil" data-pgo="qual" aria-selected="false"><i class="fa-solid fa-graduation-cap"></i>Profissão e qualificações</button>
+</div>
+<button type="button" class="tab-btn" role="tab" data-mside="divisao" aria-selected="false"><i class="fa-solid fa-people-group"></i>Divisão</button>
+<button type="button" class="tab-btn" role="tab" data-mside="travel" aria-selected="false"><i class="fa-solid fa-route"></i>Protocolo de Viagem</button>
+</div></aside><div id="member-main" class="space-y-10">
+      <div class="flex flex-wrap items-end justify-between gap-4"><div><p class="text-xs text-gold font-heading tracking-widest uppercase mb-1">Área restrita</p><h2 class="font-display text-4xl tracking-widest">Bem-vindo ao Portal</h2><p id="welcome-text" class="text-sm text-gray-400 mt-2"></p></div><span id="role-badge" class="patch-badge"><i class="fa-solid fa-user-check"></i> Integrante autorizado</span></div>
+      <section id="travel-panel" aria-live="polite"><div id="travel-body"></div></section>
+      <section id="division-panel" aria-live="polite"><div id="division-body"></div></section>
+      <div id="perfil-home"></div>
+      <section id="my-profile" class="panel p-5 md:p-6 space-y-5">
+        <div class="flex flex-wrap items-center gap-4"><div id="mp-avatar" class="w-20 h-20 rounded-full overflow-hidden bg-[#c9a84c22] border border-[#c9a84c55] flex items-center justify-center font-display text-4xl text-gold shrink-0">?</div><div><p class="text-xs text-gold font-heading tracking-widest uppercase">Meu perfil</p><h3 id="mp-title" class="font-display text-3xl tracking-widest text-white">Meus dados</h3><div class="flex flex-wrap gap-2 mt-2"><span class="patch-badge"><i class="fa-solid fa-stairs"></i> <span id="mp-grade">—</span></span><span class="patch-badge"><i class="fa-solid fa-star"></i> <span id="mp-cargo">—</span></span><span class="patch-badge"><i class="fa-solid fa-location-dot"></i> <span id="mp-div">—</span></span><span class="patch-badge hidden-view" id="mp-dcmd-wrap"><i class="fa-solid fa-user-shield"></i> Comando de Divisão: <span id="mp-dcmd"></span></span><span class="patch-badge">Situação: <span id="mp-status">—</span></span><span class="patch-badge">Desde <span id="mp-since">—</span></span></div></div></div>
+        <div class="flex flex-wrap gap-2" role="tablist" aria-label="Seções do perfil">
+          <button type="button" class="tab-btn" role="tab" data-ptab="info" aria-selected="true"><i class="fa-solid fa-user mr-2"></i>Informações pessoais</button>
+          <button type="button" class="tab-btn" role="tab" data-ptab="grade" aria-selected="false"><i class="fa-solid fa-stairs mr-2"></i>Grau, cargo e divisão</button>
+          <button type="button" class="tab-btn" role="tab" data-ptab="history" aria-selected="false"><i class="fa-solid fa-clock-rotate-left mr-2"></i>Histórico</button>
+          <button type="button" class="tab-btn" role="tab" data-ptab="honors" aria-selected="false"><i class="fa-solid fa-medal mr-2"></i>Honrarias</button>
+          <button type="button" class="tab-btn" role="tab" data-ptab="dependents" aria-selected="false"><i class="fa-solid fa-children mr-2"></i>Dependentes</button>
+          <button type="button" class="tab-btn" role="tab" data-ptab="vehicles" aria-selected="false"><i class="fa-solid fa-motorcycle mr-2"></i>Veículos</button>
+          <button type="button" class="tab-btn" role="tab" data-ptab="addresses" aria-selected="false"><i class="fa-solid fa-house mr-2"></i>Endereços</button>
+          <button type="button" class="tab-btn" role="tab" data-ptab="qual" aria-selected="false"><i class="fa-solid fa-graduation-cap mr-2"></i>Profissão e qualificações</button>
+        </div>
+        <div id="ptab-info" role="tabpanel">
+          <form id="mp-form" class="grid md:grid-cols-2 gap-3" novalidate>
+            <div><label class="block text-xs text-gray-300 mb-2" for="mp-name">Nome completo</label><input class="field" id="mp-name" maxlength="100" required></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="mp-email">E-mail (não editável)</label><input class="field" id="mp-email" readonly></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="mp-birth">Data de aniversário</label><input class="field" id="mp-birth" type="date" min="1900-01-01"><p class="text-[11px] text-gray-400 mt-1">Idade: <strong id="mp-age" class="text-white">—</strong> (calculada automaticamente)</p></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="mp-phone">Telefone</label><input class="field" id="mp-phone" inputmode="tel" autocomplete="tel-national" placeholder="(11) 91234-5678"></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="mp-wa">WhatsApp pessoal</label><input class="field" id="mp-wa" inputmode="tel" placeholder="(11) 91234-5678"></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="mp-em"><i class="fa-solid fa-triangle-exclamation text-red-300 mr-1"></i>WhatsApp de emergência</label><input class="field" id="mp-em" inputmode="tel" placeholder="(11) 91234-5678"><p class="text-[11px] text-gray-500 mt-1">Contato para situações emergenciais. Visível só para você e para a administração.</p></div>
+            <div class="md:col-span-2"><label class="block text-xs text-gray-300 mb-2" for="mp-photo">Foto de perfil (link https da imagem)</label><input class="field" id="mp-photo" maxlength="500" placeholder="https://..."></div>
+            <div class="md:col-span-2 flex flex-wrap items-center gap-3"><button class="btn btn-primary" type="submit" id="mp-save"><i class="fa-solid fa-floppy-disk mr-2"></i>Salvar meus dados</button><p id="mp-message" class="text-sm" role="status" aria-live="polite"></p></div>
+          </form>
+          <p class="text-xs text-gray-500 mt-3">Seus dados pessoais só são vistos por você e pela administração. Grau, cargo, divisão, situação, presenças e honrarias são registrados somente pela administração.</p>
+        </div>
+        <div id="ptab-grade" class="hidden-view space-y-4" role="tabpanel"><div id="mp-rank"></div><div id="mp-stats"></div><div id="mp-charts" class="space-y-4"></div></div>
+        <div id="ptab-history" class="hidden-view" role="tabpanel"><div id="mp-history" class="space-y-2 max-h-[32rem] overflow-y-auto"></div></div>
+        <div id="ptab-honors" class="hidden-view" role="tabpanel"><div id="mp-honors"></div></div>
+        <div id="ptab-dependents" class="hidden-view" role="tabpanel"><div id="ent-dependents"></div></div>
+        <div id="ptab-vehicles" class="hidden-view" role="tabpanel"><div id="ent-vehicles"></div></div>
+        <div id="ptab-addresses" class="hidden-view" role="tabpanel"><div id="ent-addresses"></div></div>
+        <div id="ptab-qual" class="hidden-view space-y-6" role="tabpanel"><div id="ent-profession"></div><hr class="gold-line"><div id="ent-courses"></div><hr class="gold-line"><div id="ent-skills"></div></div>
+      </section>
+      <div id="admin-panel" class="hidden-view">
+<div class="adm-shell"><aside class="adm-side"><div class="adm-brand"><img src="assets/images/escudo.png" alt="Insanos MC" onerror="this.style.display='none'"></div>
+<div class="adm-id"><b>INSANOS MC</b><small>Regional Jaraguá - SP · XXXV</small></div>
+<div role="tablist" aria-label="Seções do painel">
+<button type="button" class="tab-btn grp" aria-expanded="true"><i class="fa-solid fa-chart-pie"></i>Visão Geral<span class="chev"></span></button><div class="sub-wrap open"><button type="button" class="tab-btn sub" role="tab" data-tab="dashadm" aria-selected="false"><i class="fa-solid fa-gauge-high"></i>Dashboard</button><button type="button" class="tab-btn sub" role="tab" data-tab="perfil" aria-selected="false"><i class="fa-solid fa-id-card"></i>Meu Perfil</button><button type="button" class="tab-btn sub" role="tab" data-tab="content" aria-selected="true"><i class="fa-solid fa-bullhorn"></i>Comunicados</button><button type="button" class="tab-btn sub" role="tab" data-tab="dash" aria-selected="false"><i class="fa-solid fa-chart-column"></i>Indicadores</button></div>
+<button type="button" class="tab-btn grp" aria-expanded="false"><i class="fa-solid fa-users"></i>Integrantes<span class="chev"></span></button><div class="sub-wrap"><button type="button" class="tab-btn sub" role="tab" data-tab="members" aria-selected="false"><i class="fa-solid fa-users"></i>Todos os Integrantes</button><button type="button" class="tab-btn sub" role="tab" data-tab="access" aria-selected="false"><i class="fa-solid fa-user-plus"></i>Cadastrar Acesso</button><button type="button" class="tab-btn sub" role="tab" data-tab="cargos" aria-selected="false"><i class="fa-solid fa-user-tie"></i>Cargos e Funções</button><button type="button" class="tab-btn sub" role="tab" data-tab="honors" aria-selected="false"><i class="fa-solid fa-medal"></i>Honrarias</button></div>
+<button type="button" class="tab-btn grp" aria-expanded="false"><i class="fa-solid fa-sitemap"></i>Organização Regional<span class="chev"></span></button><div class="sub-wrap"><button type="button" class="tab-btn sub" role="tab" data-tab="org" aria-selected="false"><i class="fa-solid fa-sitemap"></i>Organização Regional</button><button type="button" class="tab-btn sub" role="tab" data-tab="comando" aria-selected="false"><i class="fa-solid fa-crown"></i>Comando Regional</button><button type="button" class="tab-btn sub" role="tab" data-tab="dcomando" aria-selected="false"><i class="fa-solid fa-user-shield"></i>Comando de Divisão</button><button type="button" class="tab-btn sub" role="tab" data-tab="divisions" aria-selected="false"><i class="fa-solid fa-location-dot"></i>Divisões</button></div>
+<button type="button" class="tab-btn grp" aria-expanded="false"><i class="fa-solid fa-calendar-check"></i>Eventos e Participação<span class="chev"></span></button><div class="sub-wrap"><button type="button" class="tab-btn sub" role="tab" data-tab="events" aria-selected="false"><i class="fa-solid fa-calendar-check"></i>Eventos</button></div>
+<button type="button" class="tab-btn grp" aria-expanded="false"><i class="fa-solid fa-route"></i>Viagens<span class="chev"></span></button><div class="sub-wrap"><button type="button" class="tab-btn sub" role="tab" data-tab="adm-travel" aria-selected="false"><i class="fa-solid fa-route"></i>Protocolos de Viagem</button><button type="button" class="tab-btn sub" role="tab" data-tab="adm-help" aria-selected="false"><i class="fa-solid fa-triangle-exclamation"></i>Pedidos de Ajuda<span id="help-badge" class="nav-count hidden-view">0</span></button></div>
+<button type="button" class="tab-btn grp" aria-expanded="false"><i class="fa-solid fa-gear"></i>Sistema<span class="chev"></span></button><div class="sub-wrap"><button type="button" class="tab-btn sub" role="tab" data-tab="config" aria-selected="false"><i class="fa-solid fa-sliders"></i>Configurações</button></div>
+</div><div class="adm-bottom"><span id="adm-email"></span><button type="button" id="adm-logout" class="btn btn-secondary text-sm" style="width:100%"><i class="fa-solid fa-right-from-bracket mr-2"></i>Sair</button></div></aside><div class="adm-main">
+<div class="adm-top"><div class="adm-logo">INSANOS MC</div><div class="adm-reg"><b>REGIONAL JARAGUÁ - SP</b><small>DISCIPLINA · LEALDADE · IRMANDADE</small></div><div class="adm-user"><i class="fa-solid fa-user-gear"></i><div><b>Administrador</b><small>Admin Principal</small></div></div></div>
+<div class="adm-content space-y-5">
+
+
+        <div id="tab-content" class="space-y-5" role="tabpanel">
+          <form id="content-form" class="grid md:grid-cols-3 gap-3" novalidate>
+            <input type="hidden" id="cc-id">
+            <div><label class="block text-xs text-gray-300 mb-2" for="cc-category">Categoria</label><input class="field" id="cc-category" list="cc-categories" maxlength="60" required placeholder="Ex.: WhatsApp Oficial"><datalist id="cc-categories"><option value="WhatsApp Oficial"><option value="Emergência"><option value="Orientação"><option value="Comunicado"></datalist></div>
+            <div class="md:col-span-2"><label class="block text-xs text-gray-300 mb-2" for="cc-title">Título</label><input class="field" id="cc-title" maxlength="150" required placeholder="Título do comunicado"></div>
+            <div class="md:col-span-3"><label class="block text-xs text-gray-300 mb-2" for="cc-body">Texto</label><textarea class="field" id="cc-body" rows="4" maxlength="5000" required placeholder="Escreva o texto autorizado para os integrantes."></textarea></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="cc-order">Ordem (menor aparece primeiro)</label><input class="field" id="cc-order" type="number" step="1" min="0" max="9999" value="100"></div>
+            <div class="flex items-end"><label class="flex items-center gap-2 text-sm text-gray-200 pb-3"><input type="checkbox" id="cc-published" checked class="accent-[#c9a84c] w-4 h-4"> Publicar para os integrantes</label></div>
+            <div class="flex items-end gap-2 pb-1"><button id="cc-save" class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk mr-2"></i>Publicar comunicado</button><button id="cc-cancel" class="btn btn-secondary hidden-view" type="button">Cancelar edição</button></div>
+            <p id="cc-message" class="md:col-span-3 text-sm" role="status" aria-live="polite"></p>
+          </form>
+          <hr class="gold-line">
+          <div id="admin-content-list" class="space-y-3"></div>
+        </div>
+
+        <div id="tab-members" class="hidden-view space-y-3" role="tabpanel">
+          <p class="text-xs text-gray-400">Desativar bloqueia o acesso aos comunicados na hora. O acesso pode ser reativado a qualquer momento. Você não pode desativar a própria conta.</p>
+          <input class="field" id="members-search" type="search" placeholder="Pesquisar por nome ou e-mail" aria-label="Pesquisar integrantes">
+          <p id="members-message" class="text-sm" role="status" aria-live="polite"></p>
+          <div id="members-list" class="space-y-2"></div>
+        </div>
+
+        <div id="tab-events" class="hidden-view space-y-5" role="tabpanel">
+          <form id="ev-form" class="grid md:grid-cols-3 gap-3" novalidate>
+            <input type="hidden" id="ev-id">
+            <div><label class="block text-xs text-gray-300 mb-2" for="ev-cat">Categoria</label><select class="field" id="ev-cat"></select></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="ev-name">Nome do evento</label><input class="field" id="ev-name" maxlength="150" placeholder="Ex.: PUG Regional de outubro"></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="ev-date">Data</label><input class="field" id="ev-date" type="date"></div>
+            <div class="md:col-span-3"><label class="block text-xs text-gray-300 mb-2" for="ev-desc">Descrição (opcional)</label><textarea class="field" id="ev-desc" rows="2" maxlength="2000"></textarea></div>
+            <div class="md:col-span-3 flex flex-wrap items-center gap-3"><button class="btn btn-primary" type="submit" id="ev-save"><i class="fa-solid fa-calendar-plus mr-2"></i>Criar evento</button><button class="btn btn-secondary hidden-view" type="button" id="ev-cancel">Cancelar edição</button><p id="ev-message" class="text-sm" role="status" aria-live="polite"></p></div>
+          </form>
+          <hr class="gold-line">
+          <div id="ev-list" class="space-y-2"></div>
+          <div id="ev-reg" class="space-y-3"></div>
+        </div>
+
+        <div id="tab-org" class="hidden-view space-y-4" role="tabpanel">
+          <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div><label class="block text-xs text-gray-300 mb-2" for="org-division">Divisão</label><select class="field" id="org-division"></select></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="org-grade">Grau</label><select class="field" id="org-grade"></select></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="org-cargo">Cargo</label><select class="field" id="org-cargo"></select></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="org-search">Nome</label><input class="field" id="org-search" type="search" placeholder="Pesquisar por nome"></div>
+          </div>
+          <p class="text-xs text-gray-500">Sem filtros, o COMANDO REGIONAL (Grau V, sem divisão) aparece no topo; clique em cada título para abrir ou fechar. Cada divisão mostra o Comando de Divisão (Grau VI, definido em Comando de Divisão) primeiro e depois os demais integrantes por grau. Com filtros, os grupos abrem sozinhos com os integrantes encontrados.</p>
+          <div id="org-list" class="space-y-6"></div>
+        </div>
+
+        <div id="tab-cargos" class="hidden-view space-y-5" role="tabpanel">
+          <form id="cg-form" class="grid md:grid-cols-4 gap-3" novalidate>
+            <div><label class="block text-xs text-gray-300 mb-2" for="cg-member">Integrante</label><select class="field" id="cg-member"></select></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="cg-cargo">Cargo</label><select class="field" id="cg-cargo"></select></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="cg-date">Data da alteração</label><input class="field" id="cg-date" type="date"></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="cg-note">Observação</label><input class="field" id="cg-note" maxlength="500"></div>
+            <div class="md:col-span-4 flex flex-wrap items-center gap-3"><button class="btn btn-primary" type="submit"><i class="fa-solid fa-user-tie mr-2"></i>Definir cargo</button><p id="cg-message" class="text-sm" role="status" aria-live="polite"></p></div>
+          </form>
+          <hr class="gold-line">
+          <div class="space-y-2"><h4 class="font-heading text-lg uppercase text-white">Cargos cadastrados</h4><div id="cg-list" class="space-y-2"></div>
+            <form id="cg-new" class="flex flex-wrap items-center gap-3 pt-2"><input class="field flex-1 min-w-[180px]" id="cg-new-name" maxlength="60" placeholder="Novo cargo (ex.: OPERACIONAL)"><label class="text-xs text-gray-300 flex items-center gap-2"><input type="checkbox" id="cg-new-lead" class="accent-[#c9a84c] w-4 h-4">Liderança regional (um ocupante por divisão)</label><button class="btn btn-secondary" type="submit">Adicionar cargo</button></form></div>
+          <div class="space-y-2"><h4 class="font-heading text-lg uppercase text-white">Histórico de cargos</h4><div id="cg-history" class="space-y-2 max-h-96 overflow-y-auto"></div></div>
+        </div>
+
+        <div id="tab-comando" class="hidden-view space-y-5" role="tabpanel">
+          <div><h4 class="font-heading text-lg uppercase text-white">Comando Regional</h4><p class="text-xs text-gray-400 mt-1">O Comando Regional é montado automaticamente a partir de <strong>Cargos e Funções</strong>: quem ocupa um cargo marcado como <em>Liderança regional</em> (Grau V) aparece no site, com perfil e WhatsApp do próprio cadastro. Para <strong>trocar o integrante</strong> de um cargo, use Cargos e Funções. Aqui você edita o ícone e a descrição de cada cargo.</p><button type="button" class="btn btn-secondary btn-sm mt-3" id="cr-goto"><i class="fa-solid fa-id-badge mr-2"></i>Ir para Cargos e Funções</button></div>
+          <div id="cr-list" class="space-y-3"></div>
+          <p id="cr-message" class="text-sm" role="status" aria-live="polite"></p>
+        </div>
+
+        <div id="tab-dcomando" class="hidden-view space-y-5" role="tabpanel">
+          <div><h4 class="font-heading text-lg uppercase text-white">Comando de Divisão</h4><p class="text-xs text-gray-400 mt-1">Cada divisão tem o seu comando. Os cargos só podem ser ocupados por integrantes de <strong>Grau VI</strong> que pertençam à divisão escolhida. O comando aparece no perfil do integrante, na aba Divisão do painel do integrante e na Organização Regional. Para trocar a pessoa de um cargo, escolha outro integrante e salve.</p></div>
+          <div class="max-w-sm"><label class="block text-xs text-gray-300 mb-2" for="dc-division">Divisão</label><select class="field" id="dc-division"></select></div>
+          <div id="dc-list" class="space-y-3"></div>
+          <hr class="gold-line">
+          <form id="dc-new" class="grid md:grid-cols-4 gap-3" novalidate>
+            <div class="md:col-span-2"><label class="block text-xs text-gray-300 mb-2" for="dc-new-title">Novo cargo do comando</label><input class="field" id="dc-new-title" maxlength="60" placeholder="Ex.: Diretor"></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="dc-new-icon">Ícone</label><select class="field" id="dc-new-icon"></select></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="dc-new-member">Integrante (Grau VI)</label><select class="field" id="dc-new-member"></select></div>
+            <div class="md:col-span-4 flex flex-wrap items-center gap-3"><button class="btn btn-primary" type="submit"><i class="fa-solid fa-plus mr-2"></i>Adicionar cargo</button><button class="btn btn-secondary" type="button" id="dc-defaults"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i>Criar cargos padrão (Diretor, Subdiretor, Social, ADM)</button><p id="dc-message" class="text-sm" role="status" aria-live="polite"></p></div>
+          </form>
+        </div>
+
+        <div id="tab-divisions" class="hidden-view space-y-5" role="tabpanel">
+          <form id="dv-form" class="grid md:grid-cols-4 gap-3" novalidate>
+            <div><label class="block text-xs text-gray-300 mb-2" for="dv-member">Integrante</label><select class="field" id="dv-member"></select></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="dv-division">Divisão</label><select class="field" id="dv-division"></select></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="dv-date">Data da alteração</label><input class="field" id="dv-date" type="date"></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="dv-note">Observação</label><input class="field" id="dv-note" maxlength="500"></div>
+            <div class="md:col-span-4 flex flex-wrap items-center gap-3"><button class="btn btn-primary" type="submit"><i class="fa-solid fa-location-dot mr-2"></i>Definir divisão</button><p id="dv-message" class="text-sm" role="status" aria-live="polite"></p></div>
+          </form>
+          <hr class="gold-line">
+          <div class="grid sm:grid-cols-2 gap-3"><input class="field" id="dv-search" type="search" placeholder="Pesquisar por nome, grau ou cargo" aria-label="Pesquisar integrantes"><select class="field" id="dv-filter" aria-label="Filtrar por divisão"></select></div>
+          <div id="dv-list" class="space-y-4"></div>
+          <div class="space-y-2"><h4 class="font-heading text-lg uppercase text-white">Histórico de mudanças de divisão</h4><div id="dv-history" class="space-y-2 max-h-96 overflow-y-auto"></div></div>
+        </div>
+
+        <div id="tab-honors" class="hidden-view space-y-6" role="tabpanel">
+          <div class="space-y-3"><h4 class="font-heading text-lg uppercase text-white">Honrarias cadastradas</h4>
+            <form id="hn-type-form" class="grid md:grid-cols-3 gap-3" novalidate><input type="hidden" id="hn-type-id">
+              <div><label class="block text-xs text-gray-300 mb-2" for="hn-name">Nome da honraria</label><input class="field" id="hn-name" maxlength="100"></div>
+              <div><label class="block text-xs text-gray-300 mb-2" for="hn-emblem">Emblema (link https da imagem)</label><input class="field" id="hn-emblem" maxlength="500" placeholder="https://..."></div>
+              <div><label class="block text-xs text-gray-300 mb-2" for="hn-desc">Descrição</label><input class="field" id="hn-desc" maxlength="1000"></div>
+              <div class="md:col-span-3 flex flex-wrap items-center gap-3"><button class="btn btn-primary" type="submit" id="hn-type-save">Cadastrar honraria</button><button class="btn btn-secondary hidden-view" type="button" id="hn-type-cancel">Cancelar edição</button><p id="hn-type-message" class="text-sm" role="status" aria-live="polite"></p></div>
+            </form><div id="hn-types" class="space-y-2"></div></div>
+          <hr class="gold-line">
+          <div class="space-y-3"><h4 class="font-heading text-lg uppercase text-white">Conceder honraria</h4>
+            <form id="hn-form" class="grid md:grid-cols-4 gap-3" novalidate><input type="hidden" id="hn-id">
+              <div><label class="block text-xs text-gray-300 mb-2" for="hn-member">Integrante</label><select class="field" id="hn-member"></select></div>
+              <div><label class="block text-xs text-gray-300 mb-2" for="hn-type">Honraria</label><select class="field" id="hn-type"></select></div>
+              <div><label class="block text-xs text-gray-300 mb-2" for="hn-date">Data da concessão</label><input class="field" id="hn-date" type="date"></div>
+              <div><label class="block text-xs text-gray-300 mb-2" for="hn-reason">Motivo</label><input class="field" id="hn-reason" maxlength="1000"></div>
+              <div class="md:col-span-4 flex flex-wrap items-center gap-3"><button class="btn btn-primary" type="submit" id="hn-save"><i class="fa-solid fa-medal mr-2"></i>Conceder</button><button class="btn btn-secondary hidden-view" type="button" id="hn-cancel">Cancelar edição</button><p id="hn-message" class="text-sm" role="status" aria-live="polite"></p></div>
+            </form><div id="hn-list" class="space-y-2"></div></div>
+        </div>
+
+        <div id="tab-perfil" class="hidden-view space-y-4" role="tabpanel"><div id="perfil-slot"></div></div>
+        <div id="tab-dashadm" class="hidden-view space-y-4" role="tabpanel"><div id="da-body"></div></div>
+        <div id="tab-dash" class="hidden-view space-y-4" role="tabpanel">
+          <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div><label class="block text-xs text-gray-300 mb-2" for="dash-member">Integrante</label><select class="field" id="dash-member"></select></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="dash-grade">Grau</label><select class="field" id="dash-grade"></select></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="dash-cat">Categoria do evento</label><select class="field" id="dash-cat"></select></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="dash-from">Período: de</label><input class="field" id="dash-from" type="date"></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="dash-to">até</label><input class="field" id="dash-to" type="date"></div>
+            <div><label class="block text-xs text-gray-300 mb-2" for="dash-elig">Situação de elegibilidade</label><select class="field" id="dash-elig"><option value="">Todas</option><option value="apto">Apto para avaliação</option><option value="nao">Ainda não atingiu</option><option value="sem">Sem dados</option></select></div>
+          </div>
+          <div id="dash-cards" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2"></div>
+          <div id="dash-body" class="grid md:grid-cols-2 gap-4"></div>
+          <div id="dash-one" class="space-y-4"></div>
+        </div>
+
+        <div id="tab-adm-travel" class="hidden-view space-y-4" role="tabpanel"><div id="adm-travel-body"><p class="text-sm text-gray-400">Carregando protocolos de viagem...</p></div></div>
+        <div id="tab-adm-help" class="hidden-view space-y-4" role="tabpanel"><div id="adm-help-body"><p class="text-sm text-gray-400">Carregando pedidos de ajuda...</p></div></div>
+
+        <div id="tab-config" class="hidden-view space-y-6" role="tabpanel">
+          <div class="space-y-3"><h4 class="font-heading text-lg uppercase text-white">Regras gerais</h4><div class="grid md:grid-cols-3 gap-3"><div><label class="block text-xs text-gray-300 mb-2" for="cfg-min">Percentual mínimo padrão (%)</label><input class="field" id="cfg-min" type="number" min="0" max="100" step="1"></div><div class="flex items-end"><label class="flex items-center gap-2 text-sm text-gray-200 pb-3"><input type="checkbox" id="cfg-just" class="accent-[#c9a84c] w-4 h-4"> Ausência justificada entra no total de eventos</label></div><div class="flex items-end pb-1"><button class="btn btn-primary" id="cfg-save-general" type="button">Salvar regras gerais</button></div></div></div>
+          <div class="space-y-3"><h4 class="font-heading text-lg uppercase text-white">Critérios por grau</h4><p class="text-xs text-gray-400">Deixe o percentual vazio para usar o padrão. Meses no grau: tempo mínimo no grau atual (0 = sem exigência). Os critérios valem para sair do grau indicado rumo ao próximo (a progressão vai de CAMISETA até o GRAU I, o nível mais alto).</p><div id="cfg-grades" class="space-y-2"></div><button class="btn btn-primary" id="cfg-save-grades" type="button">Salvar critérios</button></div>
+          <div class="space-y-3"><h4 class="font-heading text-lg uppercase text-white">Categorias de eventos</h4><p class="text-xs text-gray-400">"Conta para participação" define se os eventos da categoria entram no percentual.</p><div id="cfg-cats" class="space-y-2"></div><form id="cfg-cat-form" class="flex flex-wrap gap-2"><input class="field flex-1 min-w-[200px]" id="cfg-cat-name" maxlength="80" placeholder="Nova categoria"><button class="btn btn-primary" type="submit">Adicionar</button></form></div>
+          <p id="cfg-message" class="text-sm" role="status" aria-live="polite"></p>
+        </div>
+
+        <div id="tab-access" class="hidden-view" role="tabpanel">
+          <p class="text-xs text-gray-400 mb-4">Crie contas individuais. A senha inicial será definida por você e entregue ao integrante de forma privada.</p>
+          <form id="create-user-form" class="grid md:grid-cols-3 gap-3"><div><label class="block text-xs text-gray-300 mb-2" for="new-name">Nome do integrante</label><input class="field" id="new-name" required maxlength="100" placeholder="Nome completo"></div><div><label class="block text-xs text-gray-300 mb-2" for="new-email">E-mail</label><input class="field" id="new-email" type="email" required placeholder="integrante@email.com"></div><div><label class="block text-xs text-gray-300 mb-2" for="new-password">Senha temporária</label><input class="field" id="new-password" type="password" required minlength="12" autocomplete="new-password" placeholder="Mínimo 12 caracteres"></div><div class="md:col-span-3 flex flex-wrap items-center gap-3"><button id="create-user-btn" class="btn btn-primary" type="submit"><i class="fa-solid fa-user-plus mr-2"></i>Criar usuário</button><p id="admin-message" class="text-sm" role="status" aria-live="polite"></p></div></form>
+          <p class="text-xs text-gray-500 mt-4">Nunca use a mesma senha para várias pessoas. Não envie credenciais em grupos.</p>
+        </div>
+      
+</div><div class="adm-foot"><span class="adm-logo" style="font-size:20px">INSANOS MC</span><span>"O MUNDO É DIFERENTE DA PONTE PRA CÁ"</span></div></div></div>
+</div>
+      <section id="guia-fixo" class="space-y-8">
+        <div class="notice flex gap-4 items-start p-5"><div class="w-12 h-12 rounded-lg flex items-center justify-center bg-[#c9a84c22] text-gold text-xl shrink-0"><i class="fa-solid fa-circle-info"></i></div><div><h3 class="font-heading text-gold text-lg uppercase font-bold">Seja bem-vindo, irmão!</h3><p class="text-sm text-gray-300 mt-1 leading-relaxed">A disciplina e a organização nos canais digitais mantêm a segurança e o respeito de todos. Leia atentamente cada orientação abaixo para utilizar os grupos de forma consciente e correta.</p></div></div>
+
+        <div>
+          <div class="portal-section-title flex flex-wrap items-end justify-between gap-3 mb-6"><div><p class="text-xs text-gold font-heading tracking-widest uppercase">WhatsApp oficial</p><h3 class="font-display text-4xl md:text-5xl tracking-widest text-white">Canais de comunicação</h3></div><span class="patch-badge"><i class="fa-brands fa-whatsapp"></i> 5 grupos</span></div>
+
+          <div class="space-y-4">
+            <article class="group-card p-5 md:p-6"><div class="flex gap-4 md:gap-5 items-start"><img src="assets/images/INFORMAL_.png" alt="Ícone do grupo Informações Oficiais" class="guide-logo avatar-green" loading="lazy"><div class="flex-1 min-w-0"><div class="flex flex-wrap items-start justify-between gap-2"><h4 class="font-heading font-bold text-white text-xl uppercase">Informações oficiais</h4><span class="tag tag-red"><i class="fa-solid fa-ban"></i> Apenas reações</span></div><p class="text-gray-300 text-sm md:text-base mt-2">Canal oficial onde os integrantes recebem comunicados e orientações diretas do <strong class="text-gold font-medium">Comando Brasil</strong>.</p><div class="rule-box mt-4 text-sm text-gray-200"><i class="fa-solid fa-circle-exclamation text-red-400 mr-2"></i><strong class="text-red-300">REGRA:</strong> É totalmente proibido comentar ou digitar qualquer texto. O integrante pode <strong class="text-white">apenas reagir com emojis</strong> para manter o fluxo de avisos limpo.</div></div></div></article>
+
+            <article class="group-card p-5 md:p-6"><div class="flex gap-4 md:gap-5 items-start"><img src="assets/images/escudo.png" alt="Ícone do grupo Informal de Divisão" class="guide-logo" loading="lazy"><div class="flex-1 min-w-0"><div class="flex flex-wrap items-start justify-between gap-2"><h4 class="font-heading font-bold text-white text-xl uppercase">Informal de (Divisão)</h4><span class="tag tag-blue"><i class="fa-solid fa-comments"></i> Interação livre</span></div><p class="text-gray-300 text-sm md:text-base mt-2">Grupo informal exclusivo da divisão. Espaço dedicado para a <strong class="text-gold font-medium">interação entre os integrantes daquela divisão e o comando de divisão</strong>, fortalecendo a união e o convívio do grupo.</p></div></div></article>
+
+            <article class="group-card p-5 md:p-6"><div class="flex gap-4 md:gap-5 items-start"><img src="assets/images/operacional.jpg" alt="Ícone do grupo Operacional Reg Jaraguá" class="guide-logo avatar-gold" loading="lazy"><div class="flex-1 min-w-0"><div class="flex flex-wrap items-start justify-between gap-2"><h4 class="font-heading font-bold text-white text-xl uppercase">Operacional Reg Jaraguá</h4><span class="tag tag-gold"><i class="fa-solid fa-book-open"></i> Estudo &amp; respostas</span></div><p class="text-gray-300 text-sm md:text-base mt-2">Grupo focado na formação do integrante. Criado para que o irmão <strong class="text-gold font-medium">responda às perguntas enviadas diretamente pelo Comando Brasil</strong>.</p><div class="tip-box mt-4 text-sm text-gray-200"><i class="fa-solid fa-lightbulb text-gold mr-2"></i>Aprofunda o conhecimento sobre a história e regras do <strong class="text-gold font-medium">Insanos MC</strong>. As respostas estão no <strong class="text-white">Manual do Integrante</strong> e na vivência com os irmãos do clube.</div></div></div></article>
+
+            <article class="group-card p-5 md:p-6"><div class="flex gap-4 md:gap-5 items-start"><img src="assets/images/reginal_jaragua.png" alt="Ícone do grupo Regional Jaraguá - SP Central" class="guide-logo" loading="lazy"><div class="flex-1 min-w-0"><div class="flex flex-wrap items-start justify-between gap-2"><h4 class="font-heading font-bold text-white text-xl uppercase">Regional Jaraguá - SP (Central)</h4><span class="tag tag-blue"><i class="fa-solid fa-people-group"></i> Resenha &amp; eventos</span></div><p class="text-gray-300 text-sm md:text-base mt-2">Grupo principal da regional. Canal de <strong class="text-gold font-medium">interação com todo o Comando Regional e com todos os integrantes da Jaraguá</strong>.</p><ul class="grid sm:grid-cols-2 gap-x-8 gap-y-2 mt-4 text-sm text-gray-300"><li><i class="fa-solid fa-check text-gold mr-2"></i>Resenha livre e dúvidas do clube</li><li><i class="fa-solid fa-check text-gold mr-2"></i>Avisos de eventos e viagens</li><li><i class="fa-solid fa-check text-gold mr-2"></i>Pontos de Encontro (<strong class="text-gold font-medium">P.E.</strong>)</li><li><i class="fa-solid fa-check text-gold mr-2"></i>Suporte rápido no dia a dia</li></ul></div></div></article>
+
+            <article class="sos-panel p-5 md:p-6 relative"><span class="sos-flag"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Emergência</span><div class="flex gap-4 md:gap-5 items-start"><img src="assets/images/sos.jpg" alt="Ícone do grupo SOS Regional Jaraguá - SP" class="guide-logo avatar-red" loading="lazy"><div class="flex-1 min-w-0"><h4 class="font-heading font-bold text-red-300 text-xl uppercase sos-pulse"><i class="fa-solid fa-triangle-exclamation mr-2"></i>SOS Regional Jaraguá - SP</h4><p class="text-gray-200 text-sm md:text-base mt-2">Canal de <strong class="text-red-300 font-medium">EXTREMA ATENÇÃO E PRIORIDADE ABSOLUTA</strong>. Identificado pelo ícone e cor vermelha.</p><div class="sos-inner mt-4"><h5 class="font-heading text-red-300 text-sm uppercase tracking-widest font-bold mb-2">Protocolo de uso</h5><p class="text-sm text-gray-200 leading-relaxed"><strong class="text-white">NÃO É GRUPO DE RESENHA.</strong> Destinado exclusivamente para situações em que algum irmão estiver em <u class="text-white font-semibold">risco de vida</u> ou tenha sofrido um <u class="text-white font-semibold">acidente grave</u>.</p><div class="tip-box mt-3 text-sm text-goldLight"><i class="fa-solid fa-arrow-right mr-2"></i><strong>Procedimento:</strong> tente primeiro o grupo Regional. Sem resposta imediata, acione o SOS.</div><p class="mt-3 text-xs font-heading uppercase tracking-widest text-red-300"><i class="fa-solid fa-ban mr-2"></i>Jamais acionar para falta de gasolina ou imprevistos simples</p></div></div></div></article>
+          </div>
+        </div>
+
+        <div class="command-section p-5 md:p-8">
+          <div class="portal-section-title flex flex-wrap items-end justify-between gap-3 mb-6"><div><p class="text-xs text-gold font-heading tracking-widest uppercase">Insanos MC XXXV</p><h3 class="font-display text-4xl md:text-5xl tracking-widest text-white">Comando regional</h3><p class="text-sm text-gray-400 mt-1">Liderança e responsáveis oficiais</p></div><span class="patch-badge"><i class="fa-solid fa-location-dot"></i> Jaraguá · SP</span></div>
+          <div id="command-list" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"><div class="text-sm text-gray-400">Carregando comando...</div></div>
+          <img src="assets/images/comando.jpg" alt="Comando Regional Jaraguá - SP" class="w-full rounded-xl border border-[#2a2a32] mt-6" loading="lazy" onerror="this.remove()">
+        </div>
+      </section>
+      <section><div class="mb-5"><p class="text-xs text-gold font-heading tracking-widest uppercase">Conteúdo autorizado</p><h3 class="font-display text-3xl tracking-widest">Comunicados e orientações</h3></div><div id="content-list" class="space-y-4"><div class="panel p-5 text-gray-400">Carregando conteúdos...</div></div></section>
+      <section class="panel p-5 md:p-6"><div class="flex items-start gap-3"><i class="fa-solid fa-shield-halved text-gold text-xl mt-1"></i><div><h3 class="font-heading text-lg uppercase">Uso responsável</h3><p class="text-sm text-gray-400 mt-1">Este portal é destinado a integrantes autorizados. Não compartilhe credenciais, links privados ou documentos internos com pessoas não autorizadas.</p></div></div></section>
+    </div></section>
+    <section id="error-view" class="hidden-view max-w-xl mx-auto panel p-6 text-center"><i class="fa-solid fa-triangle-exclamation text-red-400 text-3xl"></i><h2 class="font-display text-3xl mt-3">Não foi possível carregar o portal</h2><p id="error-message" class="text-sm text-gray-400 mt-2"></p><button id="retry-btn" class="btn btn-secondary mt-5">Tentar novamente</button></section>
+  </main>
+  <footer class="border-t border-[#1e1e24] bg-[#0a0a0a] py-7 px-5 text-center"><div class="font-display text-white tracking-widest text-xl">INSANOS MC</div><div class="text-gold text-xs font-heading tracking-widest uppercase mt-1">Regional Jaraguá - SP · XXXV</div><hr class="gold-line my-4 max-w-xs mx-auto"><p class="text-gray-600 text-xs">Guia de Orientação para Novos Integrantes · Todos os direitos reservados</p></footer><div class="mc-topbar"></div>
+<script src="assets/js/app.js"></script>
+</body></html>
+
